@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Instagram Carousels</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* ============================================================
+   রং বদলাতে চাইলে শুধু এখানে বদলান
+   ============================================================ */
+:root{
+  --bg:#051425;
+  --bg-2:#0a2138;
+  --card:#0c2740;
+  --line:rgba(111,216,240,.22);
+  --accent:#6fd8f0;
+  --accent-2:#3fb6d6;
+  --text:#f4f8fb;
+  --muted:#a9bccb;
+  --radius:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, rgba(63,182,214,.18), transparent 60%),
+    radial-gradient(900px 500px at -10% 40%, rgba(63,182,214,.10), transparent 60%);
+  color:var(--text);
+  font-family:'Montserrat',system-ui,sans-serif;
+  font-weight:400;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+img{display:block;max-width:100%}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+.eyebrow{font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--accent);font-weight:500;display:flex;align-items:center;gap:14px}
+.eyebrow::after{content:"";height:1px;width:70px;background:var(--accent);opacity:.6}
+.serif{font-family:'Playfair Display',Georgia,serif}
+.italic{font-style:italic;color:var(--accent)}
+
+/* ---------- Header ---------- */
+header{padding:28px 0;border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{font-size:13px;letter-spacing:.28em;text-transform:uppercase;font-weight:600}
+.brand span{color:var(--muted);font-weight:400}
+.pill{font-size:11px;letter-spacing:.22em;text-transform:uppercase;border:1px solid var(--line);padding:8px 16px;border-radius:999px;color:var(--muted)}
+
+/* ---------- Hero ---------- */
+.hero{padding:96px 0 72px}
+.hero h1{font-size:clamp(44px,7vw,88px);line-height:1.02;font-weight:700;margin:22px 0 26px;letter-spacing:-.01em}
+.hero p.lead{font-size:clamp(16px,1.6vw,19px);color:var(--muted);max-width:620px;font-weight:300}
+.hero p.lead b{color:var(--accent);font-weight:500}
+.stats{display:flex;gap:14px;margin-top:44px;flex-wrap:wrap}
+.stat{border:1px solid var(--line);background:rgba(12,39,64,.55);backdrop-filter:blur(6px);border-radius:16px;padding:18px 24px;min-width:150px}
+.stat b{display:block;font-family:'Playfair Display',serif;font-size:34px;line-height:1;color:var(--accent)}
+.stat span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.jump{display:flex;gap:10px;margin-top:26px;flex-wrap:wrap}
+.jump a{color:var(--text);text-decoration:none;font-size:13px;letter-spacing:.08em;padding:10px 18px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line);transition:.2s}
+.jump a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---------- Carousel section ---------- */
+.post{padding:70px 0;border-top:1px solid var(--line)}
+.post-grid{display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:64px;align-items:start}
+.post:nth-of-type(even) .post-grid{grid-template-columns:minmax(0,1fr) minmax(0,480px)}
+.post:nth-of-type(even) .viewer{order:2}
+
+/* Instagram-style frame */
+.viewer{position:sticky;top:24px}
+.frame{background:#000;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:0 40px 80px -30px rgba(0,0,0,.7),0 0 0 6px rgba(111,216,240,.04)}
+.ig-top{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#0b1a2a;font-size:13px;font-weight:600}
+.ig-top .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#1f6c8a);display:grid;place-items:center;font-size:12px;color:var(--bg)}
+.ig-top .count{margin-left:auto;font-weight:500;font-size:12px;background:rgba(255,255,255,.12);padding:3px 10px;border-radius:999px}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;aspect-ratio:var(--ratio,3/4);background:#000}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;position:relative;cursor:zoom-in}
+.slide img{width:100%;height:100%;object-fit:contain}
+.ph{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:24px;background:repeating-linear-gradient(135deg,#0a1f33 0 14px,#0c2440 14px 28px);color:var(--muted);font-size:13px}
+.ph b{display:block;font-family:'Playfair Display',serif;font-size:42px;color:var(--accent);margin-bottom:6px}
+.ph code{font-size:12px;color:var(--text);background:rgba(0,0,0,.35);padding:3px 8px;border-radius:6px}
+.nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(5,20,37,.75);border:1px solid var(--line);display:grid;place-items:center;backdrop-filter:blur(4px);transition:.2s;z-index:2}
+.nav:hover{background:var(--accent);color:var(--bg)}
+.nav[disabled]{opacity:0;pointer-events:none}
+.nav.prev{left:12px}.nav.next{right:12px}
+.stage{position:relative}
+.ig-bottom{background:#0b1a2a;padding:12px 14px;display:flex;justify-content:center;gap:6px}
+.dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);transition:.25s}
+.dot.on{background:var(--accent);width:18px;border-radius:4px}
+.thumbs{display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.thumbs button{flex:0 0 54px;aspect-ratio:var(--ratio,3/4);border-radius:8px;overflow:hidden;border:2px solid transparent;opacity:.55;transition:.2s;background:var(--bg-2)}
+.thumbs button.on{border-color:var(--accent);opacity:1}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+
+/* Info column */
+.num{font-family:'Playfair Display',serif;font-size:110px;line-height:.8;color:transparent;-webkit-text-stroke:1px var(--accent);opacity:.55}
+.info h2{font-size:clamp(34px,4vw,52px);line-height:1.08;margin:18px 0 18px;font-weight:700}
+.info .desc{color:var(--muted);font-weight:300;font-size:16px;max-width:520px}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0}
+.meta span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;padding:7px 14px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line);color:var(--muted)}
+.box{background:linear-gradient(180deg,rgba(12,39,64,.9),rgba(10,33,56,.7));border:1px solid var(--line);border-radius:18px;padding:22px 24px;margin-top:18px}
+.box-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:12px}
+.box-h small{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);font-weight:500}
+.copy{font-size:12px;padding:7px 14px;border-radius:999px;border:1px solid var(--line);transition:.2s;white-space:nowrap}
+.copy:hover,.copy.done{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.caption{white-space:pre-line;font-size:14.5px;color:#d7e3ec;font-weight:300}
+.tags{color:var(--accent);font-size:13.5px;word-spacing:4px}
+.actions{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:999px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;text-decoration:none;transition:.2s}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover{background:#9be6f6}
+.btn-ghost{border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn svg{width:16px;height:16px}
+
+/* ---------- Footer / CTA ---------- */
+.cta{padding:90px 0;border-top:1px solid var(--line);text-align:center}
+.cta h3{font-size:clamp(34px,5vw,60px);line-height:1.1;margin:18px 0 18px}
+.cta p{color:var(--muted);max-width:560px;margin:0 auto 32px;font-weight:300}
+.cta .eyebrow{justify-content:center}
+.cta .eyebrow::before{content:"";height:1px;width:70px;background:var(--accent);opacity:.6}
+.cta .actions{justify-content:center}
+footer{padding:28px 0;border-top:1px solid var(--line);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);text-align:center}
+
+/* ---------- Lightbox ---------- */
+.lb{position:fixed;inset:0;background:rgba(2,10,19,.96);z-index:50;display:none;align-items:center;justify-content:center;padding:60px 70px}
+.lb.open{display:flex}
+.lb img{max-height:100%;max-width:100%;object-fit:contain;border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.lb .x{position:absolute;top:18px;right:22px;font-size:30px;width:44px;height:44px}
+.lb .nav{position:fixed}
+.lb .nav.prev{left:18px}.lb .nav.next{right:18px}
+.lb .lb-c{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.24em;color:var(--muted)}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--accent);color:var(--bg);padding:12px 22px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:60;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .8s ease,transform .8s ease}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:900px){
+  .post-grid,.post:nth-of-type(even) .post-grid{grid-template-columns:1fr;gap:36px}
+  .post:nth-of-type(even) .viewer{order:0}
+  .viewer{position:static;max-width:480px;margin:0 auto;width:100%}
+  .hero{padding:64px 0 48px}
+  .num{font-size:80px}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .lb{padding:56px 12px}
+  .lb .nav{display:none}
+  .btn{flex:1;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     ✏️  এখানেই সব লেখা আর ছবি বদলাবেন  (CONFIG)
+     ============================================================
+     ছবি রাখার নিয়ম — index.html এর পাশে ফোল্ডার বানান:
+        carousel-1/01.jpg, 02.jpg, 03.jpg ...
+        carousel-2/01.jpg ...
+        carousel-3/01.jpg ...
+     ফাইলের নাম আলাদা হলে নিচের "slides" লিস্টে সেই নামই লিখুন।
+     .png হলেও চলবে — শুধু নামটা ঠিক লিখবেন।
+============================================================ -->
+<script>
+const SITE = {
+  clientName:  "Elavita Solutions",
+  yourName:    "Wed Fusion Studio",         // আপনার নাম / এজেন্সির নাম
+  instaHandle: "elavitasolutions",          // ফ্রেমের উপরে যে নাম দেখাবে
+  deliveredOn: "October 2026",
+  whatsapp:    "",                          // যেমন "919876543210" (খালি রাখলে বাটন লুকানো থাকবে)
+  email:       "",                          // যেমন "hello@yourstudio.com"
+  imageRatio:  "1092 / 1440"                // ছবির width / height (4:5 হলে "4 / 5")
+};
+
+const CAROUSELS = [
+  {
+    folder: "carousel-1",
+    slides: ["01.jpg","02.jpg","03.jpg","04.jpg","05.jpg","06.jpg","07.jpg","08.jpg"],
+    title:  "5 Reasons Your Leads Aren't Booking",
+    desc:   "A problem-and-solution carousel that names the five most common reasons wedding photography inquiries don't turn into bookings — unclear ideal client, mismatched offer, form friction, slow replies and weak follow-up — with a quick fix for each, ending with a free strategy call offer.",
+    tags:   ["Educational","Conversion","8 slides"],
+    caption:
+`Getting inquiries but not bookings? It's rarely your photos. 📸
+
+Most leads are lost somewhere in the inquiry journey:
+1️⃣ Your ideal client isn't clear
+2️⃣ Your portfolio and offer don't match
+3️⃣ Your inquiry form has too much friction
+4️⃣ Your response arrives too late
+5️⃣ Your follow-up stops after one message
+
+Swipe through for a simple fix for each one, then pick the biggest drop-off point and improve it this week.
+
+Save this for later 🔖 and book a free strategy call to turn more inquiries into booked weddings.`,
+    hashtags: "#weddingphotographer #weddingphotographybusiness #photographymarketing #weddingbusiness #leadconversion"
+  },
+  {
+    folder: "carousel-2",
+    ratio:  "1058 / 1487",
+    slides: ["01.jpg","02.jpg","03.jpg","04.jpg","05.jpg","06.jpg","07.jpg"],
+    title:  "The 5-Step System to Get More Bookings",
+    desc:   "An educational carousel that walks wedding photographers through a simple, repeatable booking system — attract the right couples, make it easy to inquire, respond with a process, follow up consistently and track the pipeline — ending with a clear DM call-to-action.",
+    tags:   ["Educational","Lead generation","7 slides"],
+    caption:
+`Beautiful photos alone don't fill your calendar. A simple system does. 📸
+
+Here's the 5-step process we use to help wedding photographers attract the right couples, handle inquiries and turn them into booked weddings.
+
+Save this for later 🔖 and DM "SYSTEM" to talk about your current process.`,
+    hashtags: "#weddingphotographer #weddingphotographybusiness #photographymarketing #weddingbusiness #photographytips"
+  }
+];
+</script>
+<!-- ============================ CONFIG শেষ ============================ -->
+
+<header>
+  <div class="wrap">
+    <div class="brand" id="brand"></div>
+    <div class="pill" id="pill"></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap rv">
+    <div class="eyebrow">Content Delivery</div>
+    <h1 class="serif">Your Instagram<br><span class="italic">Carousels</span> Are Ready.</h1>
+    <p class="lead" id="lead"></p>
+    <div class="stats" id="stats"></div>
+    <div class="jump" id="jump"></div>
+  </div>
+</section>
+
+<main id="posts"></main>
+
+<section class="cta">
+  <div class="wrap rv">
+    <div class="eyebrow">What's next</div>
+    <h3 class="serif">Like what you see?<br><span class="italic">Let's keep it going.</span></h3>
+    <p>These carousels are ready to post. If you'd like a consistent content plan every month, I'd love to talk about it.</p>
+    <div class="actions" id="cta-actions"></div>
+  </div>
+</section>
+
+<footer id="foot"></footer>
+
+<!-- Lightbox -->
+<div class="lb" id="lb" aria-modal="true" role="dialog">
+  <button class="x" id="lbX" aria-label="Close">×</button>
+  <button class="nav prev" id="lbP" aria-label="Previous">‹</button>
+  <img id="lbImg" alt="">
+  <button class="nav next" id="lbN" aria-label="Next">›</button>
+  <div class="lb-c" id="lbC"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, r=document) => r.querySelector(s);
+const pad = n => String(n).padStart(2,"0");
+const icon = {
+  dl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 21h16"/></svg>',
+  ex:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 15v5h-5M15 4h5v5M9 20H4v-5"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 1-13.5 7.8L3 21l1.2-4.5A9 9 0 1 1 21 12z"/></svg>',
+  ml:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16v12H4z"/><path d="M4 7l8 6 8-6"/></svg>'
+};
+document.documentElement.style.setProperty("--ratio", SITE.imageRatio);
+document.title = `${SITE.clientName} — Instagram Carousels`;
+
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("show"),2200)}
+
+/* Header & hero */
+const total = CAROUSELS.reduce((a,c)=>a+c.slides.length,0);
+$("#brand").innerHTML = `${SITE.yourName} <span>× ${SITE.clientName}</span>`;
+$("#pill").textContent = `Delivered · ${SITE.deliveredOn}`;
+$("#lead").innerHTML = `Hi ${SITE.clientName} team — here are your <b>${CAROUSELS.length} complimentary carousels</b>. Swipe through each one, copy the caption, and download the slides when you're ready to post.`;
+$("#stats").innerHTML = `
+  <div class="stat"><b>${pad(CAROUSELS.length)}</b><span>Carousels</span></div>
+  <div class="stat"><b>${pad(total)}</b><span>Slides</span></div>
+  <div class="stat"><b>100%</b><span>Ready to post</span></div>`;
+$("#jump").innerHTML = CAROUSELS.map((c,i)=>`<a href="#post-${i+1}">${pad(i+1)} · ${c.title.split("—")[0].trim()}</a>`).join("");
+$("#foot").textContent = `© ${new Date().getFullYear()} ${SITE.yourName} · Prepared for ${SITE.clientName}`;
+
+const ctas = [];
+if (SITE.whatsapp) ctas.push(`<a class="btn btn-primary" target="_blank" rel="noopener" href="https://wa.me/${SITE.whatsapp}">${icon.wa} WhatsApp me</a>`);
+if (SITE.email) ctas.push(`<a class="btn btn-ghost" href="mailto:${SITE.email}">${icon.ml} Email me</a>`);
+if (!ctas.length) ctas.push(`<a class="btn btn-primary" href="#post-1">Back to carousels</a>`);
+$("#cta-actions").innerHTML = ctas.join("");
+
+/* Build each carousel */
+const viewers = [];
+CAROUSELS.forEach((c,ci)=>{
+  const src = c.slides.map(f=>`${c.folder}/${f}`);
+  const sec = document.createElement("section");
+  sec.className = "post"; sec.id = `post-${ci+1}`;
+  if (c.ratio) sec.style.setProperty("--ratio", c.ratio);
+  sec.innerHTML = `
+  <div class="wrap post-grid">
+    <div class="viewer rv">
+      <div class="frame">
+        <div class="ig-top"><div class="av">${SITE.instaHandle[0].toUpperCase()}</div>${SITE.instaHandle}<span class="count">1/${src.length}</span></div>
+        <div class="stage">
+          <div class="track">${src.map((s,i)=>`
+            <div class="slide" data-i="${i}">
+              <img src="${s}" alt="${c.title} — slide ${i+1}" loading="lazy">
+            </div>`).join("")}
+          </div>
+          <button class="nav prev" aria-label="Previous slide">‹</button>
+          <button class="nav next" aria-label="Next slide">›</button>
+        </div>
+        <div class="ig-bottom">${src.map((_,i)=>`<span class="dot${i?"":" on"}"></span>`).join("")}</div>
+      </div>
+      <div class="thumbs">${src.map((s,i)=>`<button class="${i?"":"on"}" aria-label="Go to slide ${i+1}"><img src="${s}" alt="" loading="lazy"></button>`).join("")}</div>
+    </div>
+    <div class="info rv">
+      <div class="num">${pad(ci+1)}</div>
+      <div class="eyebrow" style="margin-top:22px">Carousel ${pad(ci+1)} of ${pad(CAROUSELS.length)}</div>
+      <h2 class="serif">${c.title}</h2>
+      <p class="desc">${c.desc}</p>
+      <div class="meta">${c.tags.map(t=>`<span>${t}</span>`).join("")}</div>
+      <div class="box">
+        <div class="box-h"><small>Caption</small><button class="copy" data-copy="cap">Copy caption</button></div>
+        <div class="caption">${c.caption}</div>
+      </div>
+      ${c.hashtags?`<div class="box">
+        <div class="box-h"><small>Hashtags</small><button class="copy" data-copy="tag">Copy</button></div>
+        <div class="tags">${c.hashtags}</div>
+      </div>`:""}
+      <div class="actions">
+        <button class="btn btn-primary" data-act="zip">${icon.dl} Download all slides</button>
+        <button class="btn btn-ghost" data-act="full">${icon.ex} View full screen</button>
+      </div>
+    </div>
+  </div>`;
+  $("#posts").appendChild(sec);
+
+  const track = $(".track",sec), dots=[...sec.querySelectorAll(".dot")], th=[...sec.querySelectorAll(".thumbs button")];
+  const prev=$(".stage .prev",sec), next=$(".stage .next",sec), count=$(".count",sec);
+  let cur = 0;
+  const go = i => track.scrollTo({left: track.clientWidth*i, behavior:"smooth"});
+  const update = ()=>{
+    cur = Math.round(track.scrollLeft / track.clientWidth);
+    dots.forEach((d,i)=>d.classList.toggle("on",i===cur));
+    th.forEach((t,i)=>t.classList.toggle("on",i===cur));
+    count.textContent = `${cur+1}/${src.length}`;
+    prev.disabled = cur===0; next.disabled = cur===src.length-1;
+  };
+  track.addEventListener("scroll",()=>requestAnimationFrame(update),{passive:true});
+  prev.onclick=()=>go(cur-1); next.onclick=()=>go(cur+1);
+  th.forEach((t,i)=>t.onclick=()=>go(i));
+  update();
+
+  // missing image → helpful placeholder
+  sec.querySelectorAll(".slide img").forEach((img,i)=>{
+    img.onerror=()=>{img.replaceWith(Object.assign(document.createElement("div"),{className:"ph",innerHTML:`<div><b>${pad(i+1)}</b>Add your slide image here<br><br><code>${src[i]}</code></div>`}))};
+  });
+  sec.querySelectorAll(".thumbs img").forEach(img=>img.onerror=()=>img.remove());
+
+  sec.querySelectorAll(".slide").forEach(s=>s.onclick=()=>openLB(ci,+s.dataset.i));
+  $('[data-act="full"]',sec).onclick=()=>openLB(ci,cur);
+  $('[data-act="zip"]',sec).onclick=e=>downloadAll(c,src,e.currentTarget);
+  sec.querySelectorAll(".copy").forEach(b=>b.onclick=()=>{
+    const txt = b.dataset.copy==="cap" ? c.caption : c.hashtags;
+    navigator.clipboard.writeText(txt).then(()=>{
+      const o=b.textContent;b.textContent="Copied ✓";b.classList.add("done");toast("Copied to clipboard");
+      setTimeout(()=>{b.textContent=o;b.classList.remove("done")},1800);
+    }).catch(()=>toast("Select the text and copy manually"));
+  });
+  viewers.push(src);
+});
+
+/* Download all slides as a ZIP (falls back to one-by-one) */
+async function downloadAll(c,src,btn){
+  const old = btn.innerHTML; btn.innerHTML = "Preparing…"; btn.disabled = true;
+  const name = c.title.replace(/[^\w]+/g,"-").replace(/^-|-$/g,"").toLowerCase() || c.folder;
+  try{
+    if(!window.JSZip) throw 0;
+    const zip = new JSZip();
+    await Promise.all(src.map(async(s,i)=>{
+      const r = await fetch(s); if(!r.ok) throw 0;
+      zip.file(`${pad(i+1)}-${s.split("/").pop()}`, await r.blob());
+    }));
+    const blob = await zip.generateAsync({type:"blob"});
+    save(URL.createObjectURL(blob), `${name}.zip`);
+    toast("Download started");
+  }catch(_){
+    src.forEach((s,i)=>setTimeout(()=>save(s,`${name}-${pad(i+1)}.${s.split(".").pop()}`),i*350));
+    toast("Downloading slides one by one");
+  }
+  btn.innerHTML = old; btn.disabled = false;
+}
+function save(href,fn){const a=document.createElement("a");a.href=href;a.download=fn;document.body.appendChild(a);a.click();a.remove()}
+
+/* Lightbox */
+let lbC=0, lbI=0;
+const lb=$("#lb"), lbImg=$("#lbImg");
+function openLB(c,i){lbC=c;lbI=i;showLB();lb.classList.add("open");document.body.style.overflow="hidden"}
+function showLB(){const s=viewers[lbC];lbI=(lbI+s.length)%s.length;lbImg.src=s[lbI];$("#lbC").textContent=`CAROUSEL ${pad(lbC+1)} · ${pad(lbI+1)} / ${pad(s.length)}`}
+function closeLB(){lb.classList.remove("open");document.body.style.overflow=""}
+$("#lbX").onclick=closeLB; $("#lbP").onclick=()=>{lbI--;showLB()}; $("#lbN").onclick=()=>{lbI++;showLB()};
+lb.onclick=e=>{if(e.target===lb)closeLB()};
+document.addEventListener("keydown",e=>{if(!lb.classList.contains("open"))return;
+  if(e.key==="Escape")closeLB(); if(e.key==="ArrowLeft"){lbI--;showLB()} if(e.key==="ArrowRight"){lbI++;showLB()}});
+let tx=0; lb.addEventListener("touchstart",e=>tx=e.touches[0].clientX,{passive:true});
+lb.addEventListener("touchend",e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50){lbI+=d<0?1:-1;showLB()}});
+
+/* Reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll(".rv").forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
